@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import java.nio.charset.Charset;
 import java.util.regex.Pattern;
+import org.json.*;
 class WebServer {
   public static void main(String args[]) {
     WebServer server = new WebServer(9000);
@@ -288,7 +289,23 @@ class WebServer {
           // amehlhase, 46384989 -> memoranda
           // amehlhase, 46384989 -> ser316examples
           // amehlhase, 46384989 -> test316
-
+	  //try{
+		JSONArray a = new JSONArray(json);
+		for(int i = 0; i < a.length(); i++)
+		{
+			JSONObject o = a.getJSONObject(i);
+			JSONObject own = o.getJSONObject("owner");
+			//JSONObject name = o.getJSONObject("login");
+			//JSONObject id = o.getJSONObject("id");
+			//JSONObject repo = a.getJSONObject("name");
+			builder.append("HTTP/1.1 200 OK\n");
+			builder.append("Content-Type: text/html; charset=utf-8\n");
+			builder.append("\n");
+			builder.append(own.get("login") + ", " + own.get("id") + " -> " + o.get("name"));
+		}
+	 // }catch(IOException e){
+	//	builder.append("HTTP/1.1 404 Not Found\n");
+	 // }
         } else {
           // if the request is not recognized at all
 

@@ -25,7 +25,7 @@ import java.util.Random;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.nio.charset.Charset;
-
+import java.util.regex.Pattern;
 class WebServer {
   public static void main(String args[]) {
     WebServer server = new WebServer(9000);
@@ -198,25 +198,75 @@ class WebServer {
           // wrong data is given this just crashes
 
           Map<String, String> query_pairs = new LinkedHashMap<String, String>();
-          // extract path parameters
-          query_pairs = splitQuery(request.replace("multiply?", ""));
+	  query_pairs = splitQuery(request.replace("multiply?", ""));
+	  Integer num1 = Integer.parseInt("0");
+	  Integer num2 = Integer.parseInt("0");
+	  String str1 = query_pairs.get("num1");
+	  String str2 = query_pairs.get("num2");
+	  String code = "HTTP/1.1 200 OK\n";
+	  Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+	  if(str1 == null && str2 == null)
+	  {
+		code = "HTTP/1.1 204 No Content\n";
+	  }
+	  else if(str1 != null && str2 == null)
+	  {
+		code = "HTTP/1.1 206 Partial Content\n";
+		if(pattern.matcher(str1).matches())
+		{
+			num1 = Integer.parseInt(str1);
+		}
+		else
+		{
+			code = "HTTP/1.1 204 No Content\n";
+		}
+	  }
+	  else if(str1 == null && str2 != null)
+	  {
+		code = "HTTP/1.1 206 Partial Content\n";
+		if(pattern.matcher(str2).matches())
+		{
+			num2 = Integer.parseInt(str2);
+		}
+		else
+		{
+			code = "HTTP/1.1 204 No Content\n";
+		}
+	  }
+	  else if(str1 != null && str2 != null)
+	  {
+		code = "HTTP/1.1 200 OK\n";
+		if(pattern.matcher(str1).matches())
+		{
+			num1 = Integer.parseInt(str1);
+			if(pattern.matcher(str2).matches())
+			{
+				num2 = Integer.parseInt(str2);
+			}
+			else
+			{
+				code = "HTTP/1.1 206 Partial Content\n";
+			}
+		}
+		else
+		{
+			code = "HTTP/1.1 206 Partial Content\n";
+			if(pattern.matcher(str2).matches())
+			{
+				num2 = Integer.parseInt(str2);
+			}
+			else
+			{
+				code = "HTTP/1.1 204 No Content\n";
+			}
+		}
+	  }
+	  Integer result = num1 * num2;
 
-          // extract required fields from parameters
-          Integer num1 = Integer.parseInt(query_pairs.get("num1"));
-          Integer num2 = Integer.parseInt(query_pairs.get("num2"));
-
-          // do math
-          Integer result = num1 * num2;
-
-          // Generate response
-          builder.append("HTTP/1.1 200 OK\n");
-          builder.append("Content-Type: text/html; charset=utf-8\n");
-          builder.append("\n");
-          builder.append("Result is: " + result);
-
-          // TODO: Include error handling here with a correct error code and
-          // a response that makes sense
-
+	  builder.append(code);
+	  builder.append("Content-Type: text/html; charset=utf-8\n");
+	  builder.append("\n");
+	  builder.append("Result is: " + result);
         } else if (request.contains("github?")) {
           // pulls the query from the request and runs it with GitHub's REST API
           // check out https://docs.github.com/rest/reference/
